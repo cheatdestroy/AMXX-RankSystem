@@ -33,10 +33,6 @@
 #define EXP_STRIKE_2		3		// Увеличение опыта за стрик (EXP + EXP_STRIKE_2)
 #endif
 
-#define REWARD_1		4		// Уровень для получения доступа к ...
-#define REWARD_2		9		// Уровень для получения доступа к ...
-#define REWARD_3		10		// Уровень для получения доступа к ...
-#define REWARD_4		10		// Уровень для получения доступа к ...
 //======================= HUD ==========================//
 #define R 255			// Reed
 #define G 0				// Green
@@ -56,14 +52,6 @@
 //======================================================//
 
 #define RANK_NAME_LENGHT 32		// Макс. длина названия ранга
-
-enum _:Rewards
-{
-	R_1,
-	R_2,
-	R_3,
-	R_4,
-};
 
 static const g_sRankName[][RANK_NAME_LENGHT] =		//Названия
 {
@@ -98,7 +86,7 @@ static const g_iRankExp[g_iMaxRank+1] =		//Опыт // Расчёт опыта (
 };
 
 //Битсуммы
-new g_iBitReward[Rewards], g_iBitMaxRank;
+new g_iBitMaxRank;
 
 #if defined STRIKE_SYSTEM
 new g_iBitDoubleExp, g_iBitTripleExp;
@@ -113,7 +101,7 @@ new g_iPlayerMenuPage[MAX_PLAYERS], g_PlayerInMenu[MAX_PLAYERS][32], g_iTargetIn
 new bool:g_bAtrIsRank[MAX_PLAYERS];
 new g_iAdminStep[MAX_PLAYERS], g_iIndexStep[MAX_PLAYERS];
 
-new const g_iMenuStepRank[] = 
+static const g_iMenuStepRank[] = 
 {
 	0,
 	1,
@@ -128,7 +116,7 @@ new const g_iMenuStepRank[] =
 	10
 };
 
-new const g_iMenuStepExp[] = 
+static const g_iMenuStepExp[] = 
 {
 	10,
 	50,
@@ -180,10 +168,6 @@ public client_disconnect(id)
 	if(task_exists(id+TASK_HUD))
 		remove_task(id+TASK_HUD);
 
-	ClearBit(g_iBitReward[R_1], id);
-	ClearBit(g_iBitReward[R_2], id);
-	ClearBit(g_iBitReward[R_3], id);
-	ClearBit(g_iBitReward[R_4], id);
 	ClearBit(g_iBitMaxRank, id);
 
 	#if defined STRIKE_SYSTEM
@@ -268,7 +252,6 @@ public CheckRank(iPlayer)
 	if(g_iPlayerExp[iPlayer] >= g_iRankExp[g_iPlayerRank[iPlayer] + 1])
 	{
 		Event_NewRank(iPlayer, ++g_iPlayerRank[iPlayer]);
-		Event_NewReward(iPlayer);
 	}
 
 	return PLUGIN_HANDLED;
@@ -290,7 +273,6 @@ public Event_ChangeExp(iPlayer)
 public Event_NewRank(iPlayer, iRank)
 {
 	client_print_color(iPlayer, print_team_blue, "%s ^1Поздравляем! Вы получили новое звание ^3%s", PREFIX, g_sRankName[g_iPlayerRank[iPlayer]]);
-	Event_NewReward(iPlayer);
 	SQL_UpdateRank(iPlayer);
 	if(g_iPlayerRank[iPlayer] >= g_iMaxRank)
 	{
@@ -301,66 +283,6 @@ public Event_NewRank(iPlayer, iRank)
 	{
 		client_print_color(iPlayer, print_team_default, "%s ^1До следующего звание ^4%d ^1опыта", PREFIX, abs(g_iPlayerExp[iPlayer] - g_iRankExp[g_iPlayerRank[iPlayer] + 1]));
 		ClearBit(g_iBitMaxRank, iPlayer);
-	}
-}
-
-public Event_NewReward(iPlayer)
-{
-	LoadRewards(iPlayer);
-	if(g_iPlayerRank[iPlayer] == REWARD_1)
-		client_print_color(iPlayer, print_team_red, "%s ^1Награда за новый ранг: ^3доступ к ...", PREFIX);
-	if(g_iPlayerRank[iPlayer] == REWARD_2)
-		client_print_color(iPlayer, print_team_red, "%s ^1Награда за новый ранг: ^3доступ к ...", PREFIX);
-	if(g_iPlayerRank[iPlayer] == REWARD_3)
-		client_print_color(iPlayer, print_team_red, "%s ^1Награда за новый ранг: ^3доступ к ...", PREFIX);
-	if(g_iPlayerRank[iPlayer] == REWARD_4)
-		client_print_color(iPlayer, print_team_red, "%s ^1Награда за новый ранг: ^3доступ к ...", PREFIX);
-}
-
-public LoadRewards(id)
-{
-	if(g_iPlayerRank[id] >= REWARD_1)
-	{
-		if(IsNotSetBit(g_iBitReward[R_1], id))
-			SetBit(g_iBitReward[R_1], id);
-	}
-	else
-	{
-		if(IsSetBit(g_iBitReward[R_1], id))
-			ClearBit(g_iBitReward[R_1], id);
-	}
-
-	if(g_iPlayerRank[id] >= REWARD_2)
-	{
-		if(IsNotSetBit(g_iBitReward[R_2], id))
-			SetBit(g_iBitReward[R_2], id);
-	}
-	else
-	{
-		if(IsSetBit(g_iBitReward[R_2], id))
-			ClearBit(g_iBitReward[R_2], id);
-	}
-
-	if(g_iPlayerRank[id] >= REWARD_3)
-	{
-		if(IsNotSetBit(g_iBitReward[R_3], id))
-			SetBit(g_iBitReward[R_3], id);
-	}
-	else
-	{
-		if(IsSetBit(g_iBitReward[R_3], id))
-			ClearBit(g_iBitReward[R_3], id);
-	}
-
-	if(g_iPlayerRank[id] >= REWARD_4)
-	{
-		if(IsNotSetBit(g_iBitReward[R_4], id))
-			SetBit(g_iBitReward[R_4], id);
-	}
-	else
-	{
-		if(IsSetBit(g_iBitReward[R_4], id))
-			ClearBit(g_iBitReward[R_4], id);
 	}
 }
 
@@ -508,7 +430,7 @@ public Handle_SelectAction(id, iKey)
 			}
 			else
 			{
-				if(IsNotSetBit(g_iBitMaxRank, g_iTargetIndex[id]) && g_iPlayerExp[g_iTargetIndex[id]] + g_iAdminStep[id] <= g_iRankExp[g_iMaxRank])
+				if(IsNotSetBit(g_iBitMaxRank, g_iTargetIndex[id]) && (g_iPlayerExp[g_iTargetIndex[id]] + g_iAdminStep[id]) <= _:g_iRankExp[g_iMaxRank])
 				{
 					g_iPlayerExp[g_iTargetIndex[id]] += g_iAdminStep[id];
 					Event_ChangeExp(g_iTargetIndex[id]);
@@ -689,8 +611,6 @@ public SQL_LoadRankHandler(failstate, Handle:Query, error[], err, data[], size, 
 
 		if(g_iPlayerRank[id] >= g_iMaxRank)
 			SetBit(g_iBitMaxRank, id);
-
-		LoadRewards(id);
 	}
 	else
 	{
@@ -710,11 +630,6 @@ public plugin_natives()
 	register_native("add_user_exp", "_native_add_user_exp", 1);
 	register_native("minus_user_rank", "_native_minus_user_rank", 1);
 	register_native("minus_user_exp", "_native_minus_user_exp", 1);
-
-	register_native("get_bit_reward1", "_native_get_bit_reward1", 1);
-	register_native("get_bit_reward2", "_native_get_bit_reward2", 1);
-	register_native("get_bit_reward3", "_native_get_bit_reward3", 1);
-	register_native("get_bit_reward4", "_native_get_bit_reward4", 1);
 
 	register_native("get_user_rank", "_native_get_user_rank", 1);
 	register_native("get_user_exp", "_native_get_user_exp", 1);
@@ -773,26 +688,6 @@ public _native_minus_user_exp(id, value)
 		return;
 
 	g_iPlayerExp[id] -= value;
-}
-
-public _native_get_bit_reward1(id)
-{
-	return IsSetBit(g_iBitReward[R_KNIFE], id);
-}
-
-public _native_get_bit_reward2(id)
-{
-	return IsSetBit(g_iBitReward[R_PARASHUT], id);
-}
-
-public _native_get_bit_reward3(id)
-{
-	return IsSetBit(g_iBitReward[R_MODELS], id);
-}
-
-public _native_get_bit_reward4(id)
-{
-	return IsSetBit(g_iBitReward[R_DUELS], id);
 }
 
 public _native_get_user_rank(id)
